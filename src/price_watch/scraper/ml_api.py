@@ -1,6 +1,6 @@
-"""MercadoLibre product data via Apify actor task.
+"""MercadoLibre product data via Apify actor.
 
-Uses a pre-configured Apify task to scrape MercadoLibre product pages.
+Scrapes MercadoLibre via the Apify actor ``karamelo/mercadolibre-scraper-espanol-castellano``.
 No OAuth or API tokens needed — all scraping complexity is handled by Apify.
 
 Strategy:
@@ -22,7 +22,7 @@ from price_watch.config import settings
 logger = logging.getLogger(__name__)
 
 APIFY_TOKEN = settings.apify_token
-APIFY_TASK_ID = settings.apify_task_id
+APIFY_ACTOR_ID = settings.apify_actor_id
 APIFY_RUN_TIMEOUT = 120  # seconds to wait for task completion
 
 
@@ -34,8 +34,8 @@ async def fetch_item(url: str) -> dict[str, Any] | None:
 
     Returns a flat dict with keys matching our DB schema, or None on failure.
     """
-    if not APIFY_TOKEN or not APIFY_TASK_ID:
-        logger.error("APIFY_TOKEN or APIFY_TASK_ID not set.")
+    if not APIFY_TOKEN or not APIFY_ACTOR_ID:
+        logger.error("APIFY_TOKEN or APIFY_ACTOR_ID not set.")
         return None
 
     from price_watch.scraper.url_parser import extract_item_id
@@ -66,9 +66,9 @@ async def fetch_item(url: str) -> dict[str, Any] | None:
 async def _apify_search(
     client: httpx.AsyncClient, input_data: dict[str, Any]
 ) -> list[dict[str, Any]] | None:
-    """Run the Apify task with given input and return result items."""
+    """Run the Apify actor with given input and return result items."""
     resp = await client.post(
-        f"https://api.apify.com/v2/actor-tasks/{APIFY_TASK_ID}/run-sync-get-dataset-items",
+        f"https://api.apify.com/v2/acts/{APIFY_ACTOR_ID}/run-sync-get-dataset-items",
         params={"format": "json"},
         json=input_data,
     )

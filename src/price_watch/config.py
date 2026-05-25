@@ -12,10 +12,10 @@ class Settings:
 
     # Apify — used to scrape MercadoLibre product data
     apify_token: str = field(default_factory=lambda: os.getenv("APIFY_TOKEN", ""))
-    apify_task_id: str = field(
+    apify_actor_id: str = field(
         default_factory=lambda: os.getenv(
-            "APIFY_TASK_ID",
-            "nurturing_author~mercadolibre-scraper-espanol-castellano-task",
+            "APIFY_ACTOR_ID",
+            "karamelo~mercadolibre-scraper-espanol-castellano",
         )
     )
 

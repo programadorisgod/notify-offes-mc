@@ -76,7 +76,7 @@ BOT_TOKEN=tu_token_de_botfather
 
 # Apify (obligatorio)
 APIFY_TOKEN=tu_apify_token
-APIFY_TASK_ID=nurturing_author~mercadolibre-scraper-espanol-castellano-task
+APIFY_ACTOR_ID=karamelo~mercadolibre-scraper-espanol-castellano
 
 # Opcional
 DATABASE_PATH=price_watch.db
@@ -111,6 +111,7 @@ docker run -d \
   -v price-watch-data:/data \
   -e BOT_TOKEN=tu_token \
   -e APIFY_TOKEN=tu_apify_token \
+  -e APIFY_ACTOR_ID=karamelo~mercadolibre-scraper-espanol-castellano \
   -e SESSION_SECRET=un-secreto-seguro \
   notify-offes-mc
 ```
