@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>Iniciar sesión</h1>
+
+{% if error %}
+<p class="error">{{ error }}</p>
+{% endif %}
+
+<form action="/login" method="post" class="auth-form">
+    <input type="text" name="username" placeholder="Usuario" required>
+    <input type="password" name="password" placeholder="Contraseña" required>
+    <button type="submit">Ingresar</button>
+</form>
+
+<p class="auth-link">
+    ¿No tenés cuenta? <a href="/register">Registrate</a>
+</p>
+
+{% endblock %}

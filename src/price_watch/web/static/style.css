@@ -131,6 +131,105 @@ h2 { font-size: 1.2rem; margin: 2rem 0 1rem; }
     padding: 0.2rem;
 }
 
+/* Auth forms */
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    max-width: 400px;
+    margin: 1.5rem 0;
+}
+
+.auth-form input {
+    padding: 0.7rem 1rem;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+.auth-form button {
+    padding: 0.7rem;
+    background: #1a1a2e;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.auth-form button:hover {
+    background: #16213e;
+}
+
+.auth-link {
+    margin-top: 1rem;
+}
+
+.auth-note {
+    margin-top: 0.5rem;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.error {
+    color: #c62828;
+    background: #ffebee;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.nav-user {
+    color: #4caf50;
+    font-weight: 600;
+    margin-right: 0.5rem;
+}
+
+/* Notice */
+.notice {
+    background: #e3f2fd;
+    border: 1px solid #90caf9;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.notice code {
+    background: #bbdefb;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+}
+
+.notice-sub {
+    color: #555;
+    font-size: 0.85rem;
+    margin-top: 0.3rem;
+}
+
+/* Loading */
+.loading-status {
+    text-align: center;
+    padding: 2rem;
+    background: #fff;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #e0e0e0;
+    border-top: 4px solid #1a1a2e;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
 /* Alerts */
 .alerts ul {
     list-style: none;

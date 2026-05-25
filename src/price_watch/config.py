@@ -24,6 +24,9 @@ class Settings:
     )
     check_interval_seconds: int = int(os.getenv("CHECK_INTERVAL", "3600"))
 
+    session_secret: str = field(
+        default_factory=lambda: os.getenv("SESSION_SECRET", "change-me-in-production")
+    )
     log_level: str = os.getenv("LOG_LEVEL", "INFO")
     host: str = os.getenv("HOST", "0.0.0.0")
     port: int = int(os.getenv("PORT", "8000"))

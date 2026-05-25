@@ -9,7 +9,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from price_watch.config import settings
 from price_watch.scraper.ml_api import extract_price_data, fetch_item
 from price_watch.db.repository import (
-    get_products,
+    get_all_products,
     get_latest_price,
     save_price_snapshot,
     save_alert,
@@ -26,7 +26,7 @@ async def check_prices() -> None:
 
     If a price dropped below the minimum, create an alert.
     """
-    products = await get_products()
+    products = await get_all_products()
     if not products:
         logger.info("No active products to check.")
         return

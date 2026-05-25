@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>Crear cuenta</h1>
+
+{% if error %}
+<p class="error">{{ error }}</p>
+{% endif %}
+
+<form action="/register" method="post" class="auth-form">
+    <input type="text" name="username" placeholder="Usuario" required>
+    <input type="password" name="password" placeholder="Contraseña" required>
+    <button type="submit">Crear cuenta</button>
+</form>
+
+<p class="auth-link">
+    ¿Ya tenés cuenta? <a href="/login">Iniciar sesión</a>
+</p>
+
+<p class="auth-note">
+    Las mismas credenciales funcionan en Telegram con /login y /register.
+</p>
+
+{% endblock %}

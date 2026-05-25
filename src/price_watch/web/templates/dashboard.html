@@ -3,10 +3,26 @@
 
 <h1>Productos Trackeados</h1>
 
-<form action="/products" method="post" class="add-form">
-    <input type="url" name="url" placeholder="Pegá un link de MercadoLibre..." required>
-    <button type="submit">Agregar</button>
+{% if not has_chat %}
+<div class="notice">
+    <p>📱 Para agregar productos, vinculá tu cuenta con Telegram.</p>
+    <p>En el bot de Telegram usá: <code>/login {{ user.username }} tu_contraseña</code></p>
+    <p class="notice-sub">(Si no usás Telegram, los productos los agregás desde ahí y aparecen acá)</p>
+</div>
+{% endif %}
+
+<form id="add-form" class="add-form">
+    <input type="url" name="url" placeholder="Pegá un link de MercadoLibre..." required
+           {% if not has_chat %}disabled{% endif %}>
+    <button type="submit" id="add-btn" {% if not has_chat %}disabled{% endif %}>
+        Agregar
+    </button>
 </form>
+
+<div id="loading-status" class="loading-status" style="display:none">
+    <div class="spinner"></div>
+    <p>🔍 Buscando en MercadoLibre, esto puede tardar hasta 1 minuto...</p>
+</div>
 
 {% if products %}
 <section class="products">
@@ -50,5 +66,37 @@
     </ul>
 </section>
 {% endif %}
+
+<script>
+document.getElementById('add-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('add-btn');
+    const input = document.querySelector('#add-form input');
+    const status = document.getElementById('loading-status');
+    const url = input.value;
+
+    btn.disabled = true;
+    btn.textContent = 'Cargando...';
+    status.style.display = 'block';
+
+    try {
+        const formData = new FormData();
+        formData.append('url', url);
+        const resp = await fetch('/api/products', { method: 'POST', body: formData });
+        if (resp.ok) {
+            location.reload();
+        } else {
+            const err = await resp.json();
+            alert('Error: ' + (err.detail || 'desconocido'));
+        }
+    } catch (err) {
+        alert('Error de conexión: ' + err.message);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Agregar';
+        status.style.display = 'none';
+    }
+});
+</script>
 
 {% endblock %}

@@ -8,7 +8,7 @@ import pytest
 @pytest.mark.asyncio
 async def test_check_prices_no_products():
     """check_prices no debe fallar cuando no hay productos activos."""
-    with patch("price_watch.scheduler.service.get_products", return_value=[]):
+    with patch("price_watch.scheduler.service.get_all_products", return_value=[]):
         from price_watch.scheduler.service import check_prices
         # Should not raise any exception
         await check_prices()
@@ -35,7 +35,7 @@ async def test_check_prices_with_product():
     }
 
     with (
-        patch("price_watch.scheduler.service.get_products", return_value=[fake_product]),
+        patch("price_watch.scheduler.service.get_all_products", return_value=[fake_product]),
         patch("price_watch.scheduler.service.fetch_item", return_value=fake_item),
         patch("price_watch.scheduler.service.save_price_snapshot", return_value=1),
         patch("price_watch.scheduler.service.update_price_extremes"),

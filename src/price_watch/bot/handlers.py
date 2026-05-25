@@ -7,13 +7,17 @@ import logging
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 
-from price_watch.bot.notifier import register_chat
+from price_watch.bot.notifier import register_chat, register_product_chat
 from price_watch.db.repository import (
     add_product,
+    authenticate_user,
+    create_user,
     deactivate_product,
     get_product,
     get_product_by_item_id,
     get_products,
+    get_user_by_chat,
+    link_chat_to_user,
 )
 from price_watch.scraper.ml_api import extract_price_data, fetch_item
 from price_watch.scraper.url_parser import extract_item_id
@@ -21,23 +25,88 @@ from price_watch.scraper.url_parser import extract_item_id
 logger = logging.getLogger(__name__)
 
 
+async def _auth_guard(update: Update) -> int | None:
+    """Return chat_id if the chat is linked to a user, else None and send a message."""
+    chat_id = update.effective_chat.id if update.effective_chat else 0
+    user = await get_user_by_chat(chat_id) if chat_id else None
+    if user is None:
+        await update.message.reply_text(
+            "⚠️ Primero tenés que iniciar sesión.\n"
+            "Registrate: /register <usuario> <contraseña>\n"
+            "O ingresá: /login <usuario> <contraseña>"
+        )
+    return user["id"] if user else None
+
+
 async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     """Welcome message and register chat for notifications."""
     if update.effective_chat:
         register_chat(update.effective_chat.id)
+
+    user = await get_user_by_chat(update.effective_chat.id) if update.effective_chat else None
+    status = f"✅ Logueado como *{user['username']}*" if user else "❌ No has iniciado sesión"
+
     await update.message.reply_text(
-        "👋 Hola! Soy NotifyOffersMc — te aviso cuando bajan los precios en "
-        "MercadoLibre.\n\n"
+        f"👋 Hola! Soy NotifyOffersMc — te aviso cuando bajan los precios en "
+        f"MercadoLibre.\n\n{status}\n\n"
         "Comandos:\n"
-        "/add <url> — agregar producto a trackear\n"
-        "/list — ver productos trackeados\n"
+        "/register <user> <pass> — crear cuenta\n"
+        "/login <user> <pass> — iniciar sesión\n"
+        "/add <url> — agregar producto\n"
+        "/list — ver productos\n"
         "/remove <id> — dejar de trackear\n"
-        "/price <id> — ver historial de precios"
+        "/price <id> — ver historial"
+    )
+
+
+async def cmd_register(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
+    """Register a new user and link this chat."""
+    chat_id = update.effective_chat.id if update.effective_chat else 0
+    if not ctx.args or len(ctx.args) < 2:
+        await update.message.reply_text("Usá: /register <usuario> <contraseña>")
+        return
+
+    username, password = ctx.args[0], " ".join(ctx.args[1:])
+    try:
+        await create_user(username, password, chat_id=chat_id)
+        # Register for notifications
+        register_chat(chat_id)
+        await update.message.reply_text(
+            f"✅ Cuenta *{username}* creada con éxito.\n"
+            "Ya podés usar /add, /list, etc.\n\n"
+            "También podés ingresar desde la web con las mismas credenciales."
+        )
+    except ValueError as e:
+        await update.message.reply_text(f"❌ {e}")
+
+
+async def cmd_login(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
+    """Login and link this chat to an existing user."""
+    chat_id = update.effective_chat.id if update.effective_chat else 0
+    if not ctx.args or len(ctx.args) < 2:
+        await update.message.reply_text("Usá: /login <usuario> <contraseña>")
+        return
+
+    username, password = ctx.args[0], " ".join(ctx.args[1:])
+    user = await authenticate_user(username, password)
+    if user is None:
+        await update.message.reply_text("❌ Usuario o contraseña incorrectos.")
+        return
+
+    await link_chat_to_user(user["id"], chat_id)
+    register_chat(chat_id)
+    await update.message.reply_text(
+        f"✅ Sesión iniciada como *{username}*.\n"
+        "Este chat queda vinculado a tu cuenta."
     )
 
 
 async def cmd_add(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     """Add a MercadoLibre product URL to track."""
+    chat_id = update.effective_chat.id if update.effective_chat else 0
+    if not await _auth_guard(update):
+        return
+
     if not ctx.args:
         await update.message.reply_text(
             "Usá: /add <url de MercadoLibre>\n"
@@ -54,8 +123,8 @@ async def cmd_add(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         )
         return
 
-    # Check if already tracked
-    existing = await get_product_by_item_id(item_id)
+    # Check if already tracked by THIS chat
+    existing = await get_product_by_item_id(item_id, chat_id=chat_id)
     if existing:
         await update.message.reply_text(
             f"⚠️ Ese producto ya está siendo trackeado (ID: {existing['id']}).\n"
@@ -87,7 +156,11 @@ async def cmd_add(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         thumbnail=info.get("thumbnail"),
         currency_id=info["currency_id"],
         price=info["price"],
+        chat_id=chat_id,
     )
+
+    # Register for notifications
+    register_product_chat(pid, chat_id)
 
     # Format price nicely
     price_str = f"${info['price']:,.0f}".replace(",", ".")
@@ -107,8 +180,11 @@ async def cmd_add(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def cmd_list(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
-    """List all tracked products."""
-    products = await get_products()
+    """List products tracked by this chat."""
+    if not await _auth_guard(update):
+        return
+    chat_id = update.effective_chat.id if update.effective_chat else 0
+    products = await get_products(chat_id)
     if not products:
         await update.message.reply_text(
             "No tenés productos trackeados todavía.\n"
@@ -131,6 +207,10 @@ async def cmd_list(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def cmd_remove(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     """Stop tracking a product."""
+    if not await _auth_guard(update):
+        return
+    chat_id = update.effective_chat.id if update.effective_chat else 0
+
     if not ctx.args:
         await update.message.reply_text("Usá: /remove <id>")
         return
@@ -142,18 +222,22 @@ async def cmd_remove(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         return
 
     product = await get_product(pid)
-    if not product:
+    if not product or product.get("chat_id", 0) != chat_id:
         await update.message.reply_text(
             "No encontré un producto con ese ID. Usá /list para ver tus IDs."
         )
         return
 
-    await deactivate_product(pid)
+    await deactivate_product(pid, chat_id=chat_id)
     await update.message.reply_text(f"🗑️ Dejé de trackear: {product['title'][:50]}...")
 
 
 async def cmd_price(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     """Show price history for a product."""
+    if not await _auth_guard(update):
+        return
+    chat_id = update.effective_chat.id if update.effective_chat else 0
+
     if not ctx.args:
         await update.message.reply_text("Usá: /price <id>")
         return
@@ -167,7 +251,7 @@ async def cmd_price(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     from price_watch.db.repository import get_price_history
 
     product = await get_product(pid)
-    if not product:
+    if not product or product.get("chat_id", 0) != chat_id:
         await update.message.reply_text("Producto no encontrado.")
         return
 
@@ -198,6 +282,8 @@ def build_bot(token: str) -> Application:
     app = Application.builder().token(token).build()
 
     app.add_handler(CommandHandler("start", cmd_start))
+    app.add_handler(CommandHandler("register", cmd_register))
+    app.add_handler(CommandHandler("login", cmd_login))
     app.add_handler(CommandHandler("add", cmd_add))
     app.add_handler(CommandHandler("list", cmd_list))
     app.add_handler(CommandHandler("remove", cmd_remove))
