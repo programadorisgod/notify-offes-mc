@@ -55,7 +55,8 @@ async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         "/add <url> — agregar producto\n"
         "/list — ver productos\n"
         "/remove <id> — dejar de trackear\n"
-        "/price <id> — ver historial"
+        "/price <id> — ver historial",
+        parse_mode="Markdown",
     )
 
 
@@ -74,7 +75,8 @@ async def cmd_register(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         await update.message.reply_text(
             f"✅ Cuenta *{username}* creada con éxito.\n"
             "Ya podés usar /add, /list, etc.\n\n"
-            "También podés ingresar desde la web con las mismas credenciales."
+            "También podés ingresar desde la web con las mismas credenciales.",
+            parse_mode="Markdown",
         )
     except ValueError as e:
         await update.message.reply_text(f"❌ {e}")
@@ -97,7 +99,8 @@ async def cmd_login(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     register_chat(chat_id)
     await update.message.reply_text(
         f"✅ Sesión iniciada como *{username}*.\n"
-        "Este chat queda vinculado a tu cuenta."
+        "Este chat queda vinculado a tu cuenta.",
+        parse_mode="Markdown",
     )
 
 
