@@ -8,12 +8,13 @@ COPY --from=ghcr.io/astral-sh/uv:0.6 /uv /uvx /bin/
 
 WORKDIR /app
 
-# Install project deps (layer is cached unless pyproject.toml or uv.lock changes)
+# Install dependencies first (layer cached unless pyproject.toml or uv.lock changes)
 COPY pyproject.toml uv.lock ./
-RUN uv sync --no-dev --frozen
+RUN uv sync --no-dev --no-install-project --frozen
 
-# Copy source code
+# Copy source and install the project itself
 COPY src/ src/
+RUN uv sync --no-dev --frozen
 
 EXPOSE 8000
 
