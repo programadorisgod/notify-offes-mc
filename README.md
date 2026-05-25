@@ -39,11 +39,14 @@
 
 La app corre como un **proceso local** con long polling. No expone una API pública — es para uso personal/deploy propio.
 
-### ¿Es multi-usuario o single-usuario?
+### ¿Multi-usuario?
 
-**Single-usuario con soporte de múltiples chats de Telegram.**
+Sí. Cada usuario se registra con usuario y contraseña (compartido entre Telegram y web).
 
-Todos los chats que interactúan con el bot comparten la misma base de datos de productos. No hay aislamiento por usuario ni permisos diferenciados. Cualquier persona que agregue el bot a un grupo o chat privado ve los mismos productos trackeados.
+- **Telegram:** `/register user pass` → crea cuenta y vincula el chat
+- **Web:** se registra con las mismas credenciales
+- **Telegram:** `/login user pass` → vincula un chat existente a tu cuenta
+- Cada usuario ve **solamente sus productos**, tanto en Telegram como en la web
 
 ### ¿Es una API o una app local?
 
@@ -81,6 +84,7 @@ CHECK_INTERVAL=3600
 LOG_LEVEL=INFO
 HOST=0.0.0.0
 PORT=8000
+SESSION_SECRET=un-secreto-seguro
 ```
 
 ### 3. Correr la app
@@ -98,18 +102,21 @@ Esto inicia:
 
 | Comando | Descripción |
 |---------|-------------|
-| `/start` | Registrar el chat y ver ayuda |
+| `/start` | Ver estado y ayuda |
+| `/register <user> <pass>` | Crear cuenta y vincular este chat |
+| `/login <user> <pass>` | Iniciar sesión y vincular este chat |
 | `/add <url>` | Agregar producto de MercadoLibre |
-| `/list` | Ver todos los productos trackeados |
+| `/list` | Ver mis productos trackeados |
 | `/remove <id>` | Dejar de trackear un producto |
 | `/price <id>` | Ver historial de precios |
 
 ## Web Dashboard
 
 Disponible en `http://localhost:8000`:
-- Lista de productos trackeados con precios min/max
+- Login/registro con las mismas credenciales que Telegram
+- Lista de **mis** productos con precios min/max
+- Agregar productos (con spinner de carga)
 - Alertas de bajas de precio recientes
-- Agregar productos desde el navegador
 - Ver historial de precios por producto
 
 ## Estrategia de Scraping
