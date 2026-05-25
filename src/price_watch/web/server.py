@@ -83,6 +83,12 @@ async def register_action(
     except ValueError as e:
         return RedirectResponse(url=f"/register?error={str(e)}", status_code=303)
 
+    # Assign synthetic chat_id so the user can add products from web immediately
+    # (negative IDs won't conflict with real Telegram chat_ids)
+    from price_watch.db.repository import link_chat_to_user
+    synthetic_chat = -user_id
+    await link_chat_to_user(user_id, synthetic_chat)
+
     request.session["user_id"] = user_id
     request.session["username"] = username
     return RedirectResponse(url="/", status_code=303)
@@ -122,7 +128,7 @@ async def dashboard(request: Request):
             "products": products,
             "alerts": alerts,
             "user": user,
-            "has_chat": chat_id is not None,
+            "has_real_chat": chat_id is not None and chat_id > 0,
         },
     )
 

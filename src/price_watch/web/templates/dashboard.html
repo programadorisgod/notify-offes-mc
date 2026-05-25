@@ -3,20 +3,16 @@
 
 <h1>Productos Trackeados</h1>
 
-{% if not has_chat %}
+{% if not has_real_chat %}
 <div class="notice">
-    <p>📱 Para agregar productos, vinculá tu cuenta con Telegram.</p>
-    <p>En el bot de Telegram usá: <code>/login {{ user.username }} tu_contraseña</code></p>
-    <p class="notice-sub">(Si no usás Telegram, los productos los agregás desde ahí y aparecen acá)</p>
+    <p>📱 ¿Usás Telegram? Hacé <code>/login {{ user.username }} tu_contraseña</code>
+    desde el bot y tus productos se sincronizan.</p>
 </div>
 {% endif %}
 
 <form id="add-form" class="add-form">
-    <input type="url" name="url" placeholder="Pegá un link de MercadoLibre..." required
-           {% if not has_chat %}disabled{% endif %}>
-    <button type="submit" id="add-btn" {% if not has_chat %}disabled{% endif %}>
-        Agregar
-    </button>
+    <input type="url" name="url" placeholder="Pegá un link de MercadoLibre..." required>
+    <button type="submit" id="add-btn">Agregar</button>
 </form>
 
 <div id="loading-status" class="loading-status" style="display:none">
