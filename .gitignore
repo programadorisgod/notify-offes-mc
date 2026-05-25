@@ -1,0 +1,9 @@
+.env
+__pycache__/
+*.pyc
+.venv/
+price_watch.db
+ssl/
+.atl/
+.tmp/
+*.egg-info/

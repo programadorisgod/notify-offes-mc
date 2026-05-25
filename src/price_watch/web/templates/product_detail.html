@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>{{ product.title[:80] }}</h1>
+
+<p>
+    <a href="{{ product.permalink }}" target="_blank">Ver en MercadoLibre ↗</a>
+</p>
+
+<p class="price-range">
+    Rango de precios:
+    ${{ "%.2f"|format(product.min_price) }} – ${{ "%.2f"|format(product.max_price) }}
+    {{ product.currency_id }}
+</p>
+
+{% if history %}
+<section class="history">
+    <h2>Historial de Precios</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Precio</th>
+                <th>Precio Original</th>
+                <th>Stock</th>
+                <th>Fecha</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for h in history %}
+            <tr>
+                <td>${{ "%.2f"|format(h.price) }}</td>
+                <td>{% if h.original_price %}${{ "%.2f"|format(h.original_price) }}{% else %}—{% endif %}</td>
+                <td>{{ h.available_qty or "—" }}</td>
+                <td>{{ h.fetched_at }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% else %}
+<p class="empty">Todavía no hay historial de precios. El scheduler corre cada hora.</p>
+{% endif %}
+
+<a href="/" class="back">← Volver al dashboard</a>
+
+{% endblock %}

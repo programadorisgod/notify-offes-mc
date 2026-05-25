@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>Productos Trackeados</h1>
+
+<form action="/products" method="post" class="add-form">
+    <input type="url" name="url" placeholder="Pegá un link de MercadoLibre..." required>
+    <button type="submit">Agregar</button>
+</form>
+
+{% if products %}
+<section class="products">
+    {% for p in products %}
+    <article class="product-card">
+        {% if p.thumbnail %}
+        <img src="{{ p.thumbnail }}" alt="{{ p.title }}" class="thumb">
+        {% endif %}
+        <div class="info">
+            <h3><a href="/products/{{ p.id }}">{{ p.title[:80] }}</a></h3>
+            <p class="price-range">
+                <span class="min">${{ "%.2f"|format(p.min_price) }}</span>
+                –
+                <span class="max">${{ "%.2f"|format(p.max_price) }}</span>
+                {{ p.currency_id }}
+            </p>
+            <form action="/products/{{ p.id }}/delete" method="post" class="inline-form">
+                <button type="submit" class="delete"
+                        onclick="return confirm('¿Dejar de trackear?')">🗑️</button>
+            </form>
+        </div>
+    </article>
+    {% endfor %}
+</section>
+{% else %}
+<p class="empty">No hay productos trackeados todavía. Agregá uno arriba.</p>
+{% endif %}
+
+{% if alerts %}
+<section class="alerts">
+    <h2>Últimas Alertas</h2>
+    <ul>
+        {% for a in alerts %}
+        <li>
+            📉 <a href="{{ a.permalink }}" target="_blank">{{ a.title[:50] }}</a>
+            — bajó <strong>-{{ "%.1f"|format(a.drop_percent) }}%</strong>
+            (${{ "%.2f"|format(a.old_price) }} → ${{ "%.2f"|format(a.new_price) }})
+            <small>{{ a.sent_at }}</small>
+        </li>
+        {% endfor %}
+    </ul>
+</section>
+{% endif %}
+
+{% endblock %}
