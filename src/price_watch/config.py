@@ -22,7 +22,7 @@ class Settings:
     database_path: str = field(
         default_factory=lambda: os.getenv("DATABASE_PATH", "price_watch.db")
     )
-    check_interval_seconds: int = int(os.getenv("CHECK_INTERVAL", "3600"))
+    check_interval_seconds: int = int(os.getenv("CHECK_INTERVAL", "43200"))
 
     session_secret: str = field(
         default_factory=lambda: os.getenv("SESSION_SECRET", "change-me-in-production")

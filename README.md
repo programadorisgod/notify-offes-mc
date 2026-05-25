@@ -80,7 +80,7 @@ APIFY_TASK_ID=nurturing_author~mercadolibre-scraper-espanol-castellano-task
 
 # Opcional
 DATABASE_PATH=price_watch.db
-CHECK_INTERVAL=3600
+CHECK_INTERVAL=43200   # 12 horas en segundos
 LOG_LEVEL=INFO
 HOST=0.0.0.0
 PORT=8000
@@ -96,7 +96,26 @@ uv run python src/main.py
 Esto inicia:
 - El bot de Telegram (polling)
 - El web dashboard en `http://localhost:8000`
-- El scheduler que checkea precios cada hora
+- El scheduler que checkea precios cada 12 horas
+
+### 4. O con Docker
+
+```bash
+# Buildear la imagen
+docker build -t notify-offes-mc .
+
+# Correr (reemplazar variables de entorno)
+docker run -d \
+  --name price-watch \
+  -p 8000:8000 \
+  -v price-watch-data:/data \
+  -e BOT_TOKEN=tu_token \
+  -e APIFY_TOKEN=tu_apify_token \
+  -e SESSION_SECRET=un-secreto-seguro \
+  notify-offes-mc
+```
+
+> La base de datos se persiste en el volumen `price-watch-data`.
 
 ## Comandos del Bot
 
